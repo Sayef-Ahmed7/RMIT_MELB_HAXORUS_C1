@@ -1,5 +1,5 @@
 {
-  "name": "maroochy-proof",
+  "name": "water-treatment-dashboard",
   "version": "0.1.0",
   "private": true,
   "description": "Water treatment control where no single account can make a dangerous change. Quorum authority via TideCloak.",

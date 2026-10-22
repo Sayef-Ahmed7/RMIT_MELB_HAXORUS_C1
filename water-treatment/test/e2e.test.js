@@ -33,7 +33,7 @@ async function operatorRequest(token, parameter, value) {
 }
 
 before(async () => {
-  const runtime = fs.mkdtempSync(path.join(os.tmpdir(), 'maroochy-'));
+  const runtime = fs.mkdtempSync(path.join(os.tmpdir(), 'wtd-'));
   proc = spawn(process.execPath, [path.join(__dirname, '..', 'start.js')], {
     env: { ...process.env, ...ports, RUNTIME_DIR: runtime, ANTHROPIC_API_KEY: '' },
     stdio: 'ignore'
