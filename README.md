@@ -60,7 +60,6 @@ The deterministic anomaly scorer ([shared/plant.js](shared/plant.js)) runs in al
 Requires Node 20+.
 
 ```bash
-cd water-treatment
 npm install
 npm start          # starts tide-sim :5000, plc :4000, dashboard :3000
 ```
