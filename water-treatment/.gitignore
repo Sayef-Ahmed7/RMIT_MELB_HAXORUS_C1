@@ -1,0 +1,5 @@
+node_modules/
+.env
+.runtime/
+npm-debug.log*
+.DS_Store
