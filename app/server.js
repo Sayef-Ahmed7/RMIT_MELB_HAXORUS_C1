@@ -7,6 +7,8 @@ const path = require('path');
 const crypto = require('crypto');
 const { digest, generateKeyPair, sign, verifyJwt, bearer, loadPinnedPublicKey } = require('../shared/crypto');
 const { PLANT_ID, PLANT_NAME, PARAMETERS, scoreRequest, requiresEngineer } = require('../shared/plant');
+const { PERSONAS } = require('../shared/personas');
+const tc = require('../shared/tidecloak');
 
 const PORT = Number(process.env.APP_PORT || 3000);
 const TIDE_URL = process.env.TIDE_PUBLIC_URL || `http://localhost:${process.env.TIDE_PORT || 5000}`;
@@ -22,8 +24,17 @@ function log(kind, message, details = {}) {
   console.log(`[app]  ${kind.toUpperCase()} ${message}`);
 }
 
+// Who is calling. Identity only: nothing here grants authority over the plant.
 let idpKey = null;
 function sessionUser(req) {
+  if (tc.enabled) {
+    const claims = tc.sessionClaims(req);
+    if (!claims) return null;
+    const persona = PERSONAS.find((p) => p.username === claims.preferred_username);
+    // The device label is self-reported and only shown to reviewers, so it comes from the request.
+    const device = String((req.body && req.body.device) || 'control-room-console').slice(0, 60);
+    return { sub: claims.preferred_username, name: persona ? persona.name : claims.preferred_username, device };
+  }
   if (!idpKey) idpKey = loadPinnedPublicKey('tide-idp');
   return idpKey ? verifyJwt(idpKey, bearer(req)) : null;
 }
@@ -74,9 +85,30 @@ async function aiExplanation(record) {
 
 const app = express();
 app.use(express.json());
+
+// The DPoP relay page the Tide enclave loads during login, served byte-exact by the SDK with the
+// CSP it requires. Never serve a hand-edited copy: the enclave integrity-checks it.
+if (tc.enabled) {
+  const { resolveDpopAuthRequest, expectationsFromConfig } = require('@tidecloak/js/dpop-server');
+  const { issuer, client } = expectationsFromConfig(tc.adapterConfig());
+  app.use('/tide_dpop', (req, res, next) => {
+    const r = resolveDpopAuthRequest({ pathname: req.originalUrl.split('?')[0], expectedIssuer: issuer, expectedClient: client, method: req.method });
+    if (!r) return next();
+    res.status(r.status).set(r.headers).send(r.body);
+  });
+}
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Public adapter config for the browser SDK: realm URL, client id, the realm's public JWK and
+// signed client origins. No secrets.
+app.get('/api/tidecloak.json', (req, res) => {
+  if (!tc.enabled) return res.status(404).json({ error: 'TIDE_MODE is not tidecloak' });
+  res.json(tc.adapterConfig());
+});
+
 app.get('/api/config', (req, res) => res.json({
+  tideMode: tc.MODE,
+  tidecloak: tc.enabled ? { url: tc.baseUrl(), realm: tc.adapterConfig().realm } : null,
   tideUrl: TIDE_URL,
   plcUrl: PLC_URL,
   plant: { id: PLANT_ID, name: PLANT_NAME },

@@ -1,0 +1,227 @@
+{
+  "realm": "water-treatment",
+  "accessTokenLifespan": 600,
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "duplicateEmailsAllowed": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "appUser",
+        "description": "Standard application user"
+      },
+      {
+        "name": "_tide_enabled",
+        "description": "Represents a tide user thats allowed perform actions on tide"
+      },
+      {
+        "name": "_tide_encryptor",
+        "description": "RelationshipAttestation:1: may encrypt records a policy grants to this user (name fixed by the ORK contract). Capability only; the policy subject decides which records."
+      },
+      {
+        "name": "_tide_decryptor",
+        "description": "RelationshipAttestation:1: may decrypt records a policy grants to this user (name fixed by the ORK contract). Capability only; the policy subject decides which records."
+      },
+      {
+        "name": "default-roles-water-treatment",
+        "description": "${role_default-roles}",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "_tide_enabled",
+            "appUser"
+          ]
+        }
+      },
+      {
+        "name": "operator",
+        "description": "Plant operator: may request setpoint changes"
+      },
+      {
+        "name": "engineer",
+        "description": "Process engineer: independent approver for non-routine commands"
+      },
+      {
+        "name": "admin",
+        "description": "IT administrator: account governance only, no plant authority"
+      }
+    ],
+    "client": {
+      "water-treatment-dashboard": []
+    }
+  },
+  "defaultRole": {
+    "name": "default-roles-water-treatment",
+    "description": "${role_default-roles}",
+    "composite": true,
+    "clientRole": false
+  },
+  "clients": [
+    {
+      "clientId": "water-treatment-dashboard",
+      "enabled": true,
+      "redirectUris": [
+        "http://localhost:3000",
+        "http://localhost:3000/*",
+        "http://localhost:3000/silent-check-sso.html",
+        "http://localhost:3000/auth/redirect"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "publicClient": true,
+      "fullScopeAllowed": true,
+      "attributes": {
+        "dpop.bound.access.tokens": "true",
+        "tide.createdViaConsole": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "groups",
+            "full.path": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true",
+            "lightweight.claim": "true"
+          }
+        },
+        {
+          "name": "Tide User Key",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "user.attribute": "tideUserKey",
+            "lightweight.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "tideuserkey",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "audience (self): water-treatment-dashboard",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "water-treatment-dashboard",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "Tide vuid",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "user.attribute": "vuid",
+            "lightweight.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "vuid",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "wtd-policy-reader",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "clientAuthenticatorType": "client-secret"
+    }
+  ],
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "providerId": "declarative-user-profile",
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}],\"unmanagedAttributePolicy\":\"ENABLED\"}"
+          ]
+        }
+      }
+    ]
+  },
+  "authenticationFlows": [
+    {
+      "alias": "tidebrowser",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-cookie",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticatorConfig": "tide browser",
+          "authenticator": "identity-provider-redirector",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 25,
+          "userSetupAllowed": false
+        }
+      ]
+    }
+  ],
+  "authenticatorConfig": [
+    {
+      "alias": "tide browser",
+      "config": {
+        "defaultProvider": "tide"
+      }
+    }
+  ],
+  "browserFlow": "tidebrowser",
+  "requiredActions": [
+    {
+      "alias": "link-tide-account-action",
+      "name": "Link Tide Account",
+      "providerId": "link-tide-account-action",
+      "enabled": true
+    },
+    {
+      "alias": "UPDATE_PASSWORD",
+      "name": "Update Password",
+      "providerId": "UPDATE_PASSWORD",
+      "enabled": false
+    }
+  ],
+  "displayName": "Water Treatment Dashboard",
+  "attributes": {
+    "wtd.engineerApprovals": "1"
+  },
+  "users": [
+    {
+      "username": "service-account-wtd-policy-reader",
+      "enabled": true,
+      "serviceAccountClientId": "wtd-policy-reader",
+      "clientRoles": {
+        "realm-management": [
+          "view-users",
+          "view-realm"
+        ]
+      }
+    }
+  ]
+}
