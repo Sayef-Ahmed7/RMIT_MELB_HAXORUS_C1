@@ -118,6 +118,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .btn.bad { background: var(--bad); border-color: var(--bad); color: #fff; }
 .btn.ghost { background: transparent; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.small { padding: 4px 10px; font-size: 12px; }
+.session { display: flex; gap: 6px; align-items: center; margin-left: 8px; }
 
 .req { border: 1px solid var(--line); background: var(--panel-2); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
 .req .top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }

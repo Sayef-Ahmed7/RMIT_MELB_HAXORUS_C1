@@ -36,7 +36,23 @@ async function waitForTide() {
   throw new Error('tide-sim did not start');
 }
 
+// TIDE_MODE=tidecloak needs the realm the bootstrap creates. Say so plainly rather than crash later.
+async function checkTidecloak() {
+  const tc = require('./shared/tidecloak');
+  if (!tc.enabled) return console.log('[start] TIDE_MODE=sim: local TideCloak simulator (set TIDE_MODE=tidecloak for the real thing)');
+  try {
+    tc.adapterConfig();
+    const r = await fetch(`${tc.realmUrl()}/.well-known/openid-configuration`);
+    if (!r.ok) throw new Error(`realm answered ${r.status}`);
+    console.log(`[start] TIDE_MODE=tidecloak: identity and governance from ${tc.realmUrl()}`);
+  } catch (err) {
+    console.error(`[start] TideCloak is not ready: ${err.message}\n        Start it with: npm run tidecloak:bootstrap  (or run with TIDE_MODE=sim)`);
+    process.exit(1);
+  }
+}
+
 (async () => {
+  await checkTidecloak();
   fs.rmSync(RUNTIME_DIR, { recursive: true, force: true });
   run('tide-sim', 'tide-sim/server.js');
   await waitForTide();

@@ -3,3 +3,6 @@ node_modules/
 .runtime/
 npm-debug.log*
 .DS_Store
+.tide-pack/
+tidecloak/data/
+app/public/vendor/

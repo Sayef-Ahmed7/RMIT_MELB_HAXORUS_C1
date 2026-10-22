@@ -6,11 +6,17 @@
   "main": "start.js",
   "scripts": {
     "start": "node start.js",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "tidecloak:bootstrap": "node tidecloak/bootstrap.js",
+    "postinstall": "node scripts/bundle-tidecloak.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.1.0",
+    "@tidecloak/js": "0.14.41",
     "dotenv": "^16.4.5",
     "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
   }
 }

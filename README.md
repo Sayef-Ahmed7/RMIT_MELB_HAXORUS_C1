@@ -45,15 +45,14 @@ An attacker with Sam's stolen password sets NaOH to 11,100 ppm. The AI flags it 
 The deterministic anomaly scorer ([shared/plant.js](shared/plant.js)) runs in all three places. The AI can raise risk but cannot lower it: the Tide policy and the PLC re-score the command themselves. Claude, if configured, only writes the explanation.
 
 ### TideCloak integration status
-`tide-sim` is a local simulator of the TideCloak and Tide roles. In real Tide, the authority key is split across the Tide network's nodes and never assembled in one place. The interfaces are designed so each piece swaps for the real one:
+**The demo and video run on `tide-sim`, a local TideCloak simulator. Real TideCloak login, roles and admin change requests are coded (`TIDE_MODE=tidecloak`) but have not run live: Tide's licensing service failed when we set up the realm on 22 Oct 2026.**
 
-| tide-sim today | Real TideCloak |
-|---|---|
-| `POST /login` → signed token | TideCloak OIDC login (Quickstart) |
-| Live role lookup | Realm roles `operator`, `engineer`, `admin` |
-| `POST /authorize` → authority signature when quorum met | Tide policy-gated signing over the command payload |
-| `/admin/change-requests` (2 of 3 admins) | TideCloak change-request approvals for role and policy changes |
-| PLC pins `.runtime/tide-authority.pub.pem` | PLC pins the realm's Tide public key |
+| Piece | Demo (`TIDE_MODE=sim`, default) | Real TideCloak (`TIDE_MODE=tidecloak`, coded, not verified live) |
+|---|---|---|
+| Sign-in | `tide-sim` `POST /login` → signed token | Tide enclave login via `@tidecloak/js`; servers verify the EdDSA token against the realm key and its DPoP proof ([shared/tidecloak.js](shared/tidecloak.js)) |
+| Roles | Live lookup in `tide-sim` | Realm roles `operator`, `engineer`, `admin`, read live from TideCloak by a read-only account |
+| Role and policy changes | `tide-sim` change requests, 2 of 3 admins | TideCloak IGA change requests; each admin approves by signing in their own Tide enclave |
+| Command authority | Gateway signs the exact command once the quorum is met; PLC pins its public key | Same (Fallback B). Tide-network signing needs a custom Forseti contract deployed by the Tide team |
 
 ## Setup
 
@@ -69,8 +68,11 @@ Open http://localhost:3000. Switch personas from the top bar, or open one tab pe
 Optional: copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY` to have Claude write the risk explanations.
 
 ```bash
-npm test           # end-to-end: routine change, all three attacks, replay/tamper, 2-admin governance
+npm test           # end-to-end: routine change, all three attacks, replay/tamper, 2-admin governance,
+                   # plus the TideCloak token and DPoP verifier
 ```
+
+Optional, real TideCloak (needs Docker): put `KC_BOOTSTRAP_ADMIN_PASSWORD`, `TIDE_LICENSE_EMAIL` and `TIDE_TERMS_ACCEPTED=yes` in `.env`, run `npm run tidecloak:bootstrap` (it starts TideCloak, creates the realm and prints one Tide invite link per persona), then set `TIDE_MODE=tidecloak` and `npm start`. Each person uses their own browser profile.
 
 ### Demo path (about 2 minutes)
 1. **Sam**: use the preset "chlorine → 1.2" and submit. AI: LOW, and it executes instantly.
@@ -81,6 +83,7 @@ npm test           # end-to-end: routine change, all three attacks, replay/tampe
 6. **Jordan**: reject Morgan's change requests.
 
 ## Sources
+- Maroochy Shire (MITRE ATT&CK for ICS): https://attack.mitre.org/campaigns/C0020/
 - Oldsmar: https://huntonak.com/privacy-and-information-security-law/florida-water-hack-shows-danger-of-remote-access-vulnerabilities
 - Post Rock (US DOJ): https://www.justice.gov/usao-ks/pr/kansas-man-pleads-guilty-water-facility-tampering
 - Aliquippa: https://www.secureworld.io/industry-news/iranian-hackers-target-us-water-facility
