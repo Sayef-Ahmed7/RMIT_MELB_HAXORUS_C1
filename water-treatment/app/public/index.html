@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maroochy-Proof</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">◈</div>
+      <div>
+        <h1>Maroochy-Proof</h1>
+        <p id="plant-name">Demo Valley Water Treatment Plant</p>
+      </div>
+    </div>
+    <div class="badge-tide" title="High-risk commands need a quorum signature from the Tide network. No single account, server or admin can produce one.">
+      <span class="dot"></span> Protected by TideCloak quorum
+    </div>
+    <nav class="personas" id="personas"></nav>
+  </header>
+
+  <div id="alert" class="alert hidden"></div>
+
+  <main class="layout">
+    <section class="plant">
+      <div class="card schematic-card">
+        <div class="card-head">
+          <h2>Plant schematic</h2>
+          <span id="water-status" class="pill ok">Water safe</span>
+        </div>
+        <svg id="schematic" viewBox="0 55 900 180" role="img" aria-label="Plant schematic">
+          <defs>
+            <linearGradient id="waterGrad" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="var(--water)" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="var(--water)" stop-opacity="0.55"/>
+            </linearGradient>
+          </defs>
+          <g class="pipes">
+            <path class="pipe" d="M120 130 H190"/>
+            <path class="pipe" d="M300 130 H370"/>
+            <path class="pipe" d="M480 130 H550"/>
+            <path class="pipe" d="M660 130 H740"/>
+            <path class="pipe bypass" id="bypass-pipe" d="M120 150 V205 H690 V150"/>
+          </g>
+          <g class="pipes-flow">
+            <path class="flow" d="M120 130 H190"/>
+            <path class="flow" d="M300 130 H370"/>
+            <path class="flow" id="flow-filter-out" d="M480 130 H550"/>
+            <path class="flow" d="M660 130 H740"/>
+            <path class="flow bypass-flow" id="bypass-flow" d="M120 150 V205 H690 V150"/>
+          </g>
+
+          <g class="unit" transform="translate(20 80)">
+            <rect width="100" height="100" rx="10"/>
+            <rect class="water" x="8" y="40" width="84" height="52" rx="6"/>
+            <text x="50" y="26">Intake</text>
+          </g>
+          <g class="unit" transform="translate(190 80)">
+            <rect width="110" height="100" rx="10"/>
+            <rect class="water" id="dose-water" x="8" y="30" width="94" height="62" rx="6"/>
+            <text x="55" y="22">Dosing</text>
+            <text class="sub" id="dose-label" x="55" y="62">NaOH 100 ppm</text>
+          </g>
+          <g class="unit" id="filter-unit" transform="translate(370 80)">
+            <rect width="110" height="100" rx="10"/>
+            <g class="filter-lines">
+              <line x1="20" y1="36" x2="90" y2="36"/><line x1="20" y1="48" x2="90" y2="48"/>
+              <line x1="20" y1="60" x2="90" y2="60"/><line x1="20" y1="72" x2="90" y2="72"/>
+            </g>
+            <text x="55" y="22">Filter</text>
+            <text class="sub" id="filter-label" x="55" y="92">online</text>
+          </g>
+          <g class="unit" transform="translate(550 80)">
+            <rect width="110" height="100" rx="10"/>
+            <rect class="water" id="clear-water" x="8" y="30" width="94" height="62" rx="6"/>
+            <text x="55" y="22">Clear water</text>
+            <text class="sub" id="clear-label" x="55" y="62">pH 7.2 · Cl 1.0</text>
+          </g>
+          <g class="town" transform="translate(745 70)">
+            <path d="M10 110 V70 L35 50 L60 70 V110 Z"/>
+            <path d="M60 110 V60 L90 35 L120 60 V110 Z"/>
+            <path d="M120 110 V80 L140 65 L155 80 V110 Z"/>
+            <text x="80" y="135">Town · 18,000 people</text>
+          </g>
+          <text class="bypass-label" x="400" y="222">bypass</text>
+        </svg>
+        <div id="preview" class="preview hidden"></div>
+      </div>
+
+      <div class="gauges" id="gauges"></div>
+
+      <div class="card" id="panel"></div>
+    </section>
+
+    <aside class="feed card">
+      <div class="card-head">
+        <h2>Audit feed</h2>
+        <div class="legend"><span class="chip tide">TIDE</span><span class="chip plc">PLC</span><span class="chip app">APP</span></div>
+      </div>
+      <ol id="events"></ol>
+    </aside>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
